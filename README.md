@@ -1,17 +1,45 @@
 # dotfiles
 
-Public, portable bits of my setup (macOS, zsh). Right now it holds one
-Herdr App mod; more will move in as they're cleaned up.
+Public, portable bits of my setup (macOS, zsh): shell, git and Herdr App.
+Everything specific to one machine lives in untracked `*.local` files.
 
 ```sh
 git clone https://github.com/base698/dotfiles.git ~/workspaces/dotfiles
-cd ~/workspaces/dotfiles && ./install.sh     # or ./install.sh --copy
+cd ~/workspaces/dotfiles
+./install.sh --dry-run        # see what it would change
+./install.sh                  # or just some parts: ./install.sh zsh git herdr
 ```
 
-`install.sh` is safe to re-run. It symlinks each mod into
-`~/.config/herdr-app/mods/` (so `git pull` updates it live; Herdr hot-reloads)
-and **merges** the key bindings into Herdr's `keys.json` rather than replacing it.
-Anything it displaces goes to `~/.config/herdr-app/.dotfiles-backup/`.
+`install.sh` is safe to re-run. It symlinks files into place (so `git pull`
+updates them), moves anything it replaces to `~/.dotfiles-backup/<time>/`, and
+creates the per-machine files from their examples only if they don't exist.
+
+| Part | Linked | Per-machine (never committed) |
+|---|---|---|
+| `zsh` | `~/.zshrc` → `zsh/zshrc`, which loads `zsh/conf.d/*.zsh` | `~/.zshrc.local` (loaded last), `~/.env_secrets` |
+| `git` | `~/.gitconfig` → `git/gitconfig` | `~/.gitconfig.local`: name, email, signing key, SSH URL rewrite |
+| `herdr` | each mod in `herdr-app/mods/` → `~/.config/herdr-app/mods/` | key bindings are **merged** into Herdr's `keys.json` |
+
+## zsh
+
+`conf.d/` in load order: `10-path` (missing dirs dropped, no duplicates; Homebrew
+after the system dirs unless `DOTFILES_BREW_FIRST=1`), `20-env`, `30-history`
+(50k lines, timestamped), `40-aliases`, `50-prompt`, `60-tools` (nvm, deno,
+gcloud, conda, Gas Town: each only if installed).
+
+Prompt: `(venv) ✔ ~/dir [branch|✚staged…changed ?untracked]`, then the time.
+
+Shell shortcuts call git aliases so there's one definition: `s` → `git st`,
+`l` → `git log`, `lg` → `git lg`. Also `ll`, `f` (find by name), `g` (grep -E), `cb` (clipboard).
+
+## git
+
+Aliases (`git aliases` lists them): `st co sw ci br pl ps df dc amend unstage`,
+`lg` (graph of all branches), `last`, `w` (patches, ignoring whitespace),
+`recent` (branches by last commit), `gone` (local branches whose upstream was
+deleted; lists only), `root`.
+
+Defaults: `init.defaultBranch=main`, `push.autoSetupRemote`, `fetch.prune`, diff3 conflicts.
 
 ## Herdr App: `files-find` (Ctrl+Cmd+F)
 

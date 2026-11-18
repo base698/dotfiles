@@ -1,0 +1,13 @@
+# ~/.zshrc -> <dotfiles>/zsh/zshrc  (linked by install.sh)
+#
+# Shared config lives in conf.d/*.zsh, loaded in name order. Anything specific to
+# one machine (project IDs, work paths, extra PATH entries) goes in ~/.zshrc.local,
+# which loads last and is never committed. Secrets go in ~/.env_secrets.
+
+export DOTFILES="${${(%):-%x}:A:h:h}"
+
+for _f in "$DOTFILES"/zsh/conf.d/*.zsh(N); do source "$_f"; done
+unset _f
+
+[[ -f "$HOME/.env_secrets" ]] && source "$HOME/.env_secrets"
+[[ -f "$HOME/.zshrc.local" ]] && source "$HOME/.zshrc.local"

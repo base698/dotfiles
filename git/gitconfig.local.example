@@ -1,0 +1,9 @@
+# ~/.gitconfig.local: this machine only, never committed.
+[user]
+	name = Your Name
+	email = you@example.com
+#	signingkey = <gpg key id>
+
+# Use SSH for GitHub (needs a key on this machine):
+#[url "git@github.com:"]
+#	insteadOf = https://github.com/

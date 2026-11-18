@@ -1,35 +1,103 @@
 #!/usr/bin/env bash
 # Install these dotfiles on this machine. Safe to re-run.
-#   ./install.sh          symlink mods (a `git pull` updates them live)
-#   ./install.sh --copy   copy instead of symlinking
+#
+#   ./install.sh                 everything below
+#   ./install.sh zsh git         just those parts (zsh, git, herdr)
+#   ./install.sh --copy herdr    copy Herdr mods instead of symlinking them
+#   ./install.sh --dry-run       show what would change
+#
+# Anything replaced is moved to ~/.dotfiles-backup/<time>/ (Herdr bits to
+# ~/.config/herdr-app/.dotfiles-backup/), never deleted.
 set -euo pipefail
 
 repo="$(cd "$(dirname "$0")" && pwd)"
-mode=link
-[[ "${1:-}" == "--copy" ]] && mode=copy
-app="${HERDR_APP_HOME:-$HOME/.config/herdr-app}"
-stamp="$(date +%s)"
+copy=0 dry=0 parts=()
+for arg in "$@"; do
+  case "$arg" in
+    --copy) copy=1 ;;
+    --dry-run|-n) dry=1 ;;
+    -h|--help) sed -n '2,11p' "$0"; exit 0 ;;
+    zsh|git|herdr) parts+=("$arg") ;;
+    *) echo "unknown part: $arg (zsh, git, herdr)" >&2; exit 2 ;;
+  esac
+done
+(( ${#parts[@]} )) || parts=(zsh git herdr)
 
-need() { command -v "$1" >/dev/null 2>&1 || echo "  note: '$1' not found (brew install $2)"; }
+stamp="$(date +%Y%m%d-%H%M%S)"
+backup="$HOME/.dotfiles-backup/$stamp"
 
-if [[ -d "$app" ]]; then
-  echo "Herdr App ($app)"
-  need fd fd; need rg ripgrep
-  mkdir -p "$app/mods" "$app/.dotfiles-backup"
-  for src in "$repo"/herdr-app/mods/*/; do
-    src="${src%/}"; name="$(basename "$src")"; dst="$app/mods/$name"
-    if [[ -L "$dst" ]]; then
-      rm "$dst"
-    elif [[ -e "$dst" ]]; then
-      # Not left inside mods/: Herdr would load the backup as another mod.
-      mv "$dst" "$app/.dotfiles-backup/$name.$stamp"
-      echo "  moved existing $name to .dotfiles-backup/$name.$stamp"
-    fi
-    if [[ $mode == link ]]; then ln -s "$src" "$dst"; else cp -R "$src" "$dst"; fi
-    echo "  mod $name ($mode)"
-    if command -v herdr-app >/dev/null 2>&1; then herdr-app check "$dst" | sed 's/^/  /'; fi
+run() { if (( dry )); then echo "  would: $*"; else "$@"; fi; }
+
+# link <repo file> <target>: symlink target -> repo file, moving whatever was there aside.
+link() {
+  local src="$1" dst="$2"
+  if [[ -L "$dst" && "$(readlink "$dst")" == "$src" ]]; then
+    echo "  ok      ${dst/#$HOME/~}"; return
+  fi
+  if [[ -e "$dst" || -L "$dst" ]]; then
+    run mkdir -p "$backup"
+    run mv "$dst" "$backup/"
+    echo "  moved   ${dst/#$HOME/~} -> ${backup/#$HOME/~}/"
+  fi
+  run mkdir -p "$(dirname "$dst")"
+  run ln -s "$src" "$dst"
+  echo "  linked  ${dst/#$HOME/~}"
+}
+
+# seed <example> <target>: create a per-machine file from its example, never overwrite.
+seed() {
+  local src="$1" dst="$2"
+  if [[ -e "$dst" ]]; then echo "  kept    ${dst/#$HOME/~}"; return; fi
+  run cp "$src" "$dst"
+  echo "  created ${dst/#$HOME/~} (edit it for this machine)"
+}
+
+install_zsh() {
+  echo "zsh"
+  link "$repo/zsh/zshrc" "$HOME/.zshrc"
+  seed "$repo/zsh/zshrc.local.example" "$HOME/.zshrc.local"
+}
+
+install_git() {
+  echo "git"
+  link "$repo/git/gitconfig" "$HOME/.gitconfig"
+  if [[ ! -e "$HOME/.gitconfig.local" ]]; then
+    seed "$repo/git/gitconfig.local.example" "$HOME/.gitconfig.local"
+    echo "  set your identity: git config --file ~/.gitconfig.local user.email you@work.com"
+  else
+    echo "  kept    ~/.gitconfig.local"
+  fi
+}
+
+install_herdr() {
+  local app="${HERDR_APP_HOME:-$HOME/.config/herdr-app}"
+  echo "herdr app (${app/#$HOME/~})"
+  if [[ ! -d "$app" ]]; then echo "  not installed here; open Herdr App once, then re-run"; return; fi
+  for tool in fd:fd rg:ripgrep; do
+    command -v "${tool%%:*}" >/dev/null 2>&1 || echo "  note: ${tool%%:*} missing (brew install ${tool##*:})"
   done
-  python3 "$repo/scripts/merge-keys.py" "$app/keys.json" "$repo/herdr-app/keys.json"
-else
-  echo "Herdr App not found at $app; skipping (open it once, then re-run)"
-fi
+  local hb="$app/.dotfiles-backup"
+  for src in "$repo"/herdr-app/mods/*/; do
+    src="${src%/}"; local name dst; name="$(basename "$src")"; dst="$app/mods/$name"
+    if (( ! copy )) && [[ -L "$dst" && "$(readlink "$dst")" == "$src" ]]; then
+      echo "  ok      mod $name"
+    else
+      if [[ -L "$dst" ]]; then run rm "$dst"
+      elif [[ -e "$dst" ]]; then
+        # Not left inside mods/: Herdr would load the backup as another mod.
+        run mkdir -p "$hb"; run mv "$dst" "$hb/$name.$stamp"
+        echo "  moved   mod $name -> .dotfiles-backup/$name.$stamp"
+      fi
+      if (( copy )); then run cp -R "$src" "$dst"; else run ln -s "$src" "$dst"; fi
+      echo "  $( (( copy )) && echo copied || echo linked)  mod $name"
+    fi
+    if (( ! dry )) && command -v herdr-app >/dev/null 2>&1; then herdr-app check "$dst" | sed 's/^/  /'; fi
+  done
+  if (( dry )); then echo "  would: merge herdr-app/keys.json into keys.json"
+  else python3 "$repo/scripts/merge-keys.py" "$app/keys.json" "$repo/herdr-app/keys.json"; fi
+}
+
+for part in "${parts[@]}"; do "install_$part"; done
+(( dry )) && echo "(dry run: nothing changed)"
+[[ " ${parts[*]} " == *" zsh "* ]] && (( ! dry )) && echo "open a new shell (or: exec zsh) to load it"
+exit 0

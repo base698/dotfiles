@@ -1,0 +1,44 @@
+# ~/.gitconfig -> <dotfiles>/git/gitconfig  (linked by install.sh)
+# Identity, signing keys and per-machine URL rewrites live in ~/.gitconfig.local
+# (included at the bottom, so it can override anything here).
+
+[alias]
+	# everyday
+	st = status
+	co = checkout
+	sw = switch
+	ci = commit
+	br = branch
+	pl = pull
+	ps = push
+	df = diff
+	dc = diff --cached
+	amend = commit --amend --no-edit
+	unstage = restore --staged
+	# history
+	lg = log --oneline --graph --decorate --all
+	last = log -1 --stat
+	w = log -p -c -w --color
+	# branches
+	recent = for-each-ref --sort=-committerdate --count=15 --format='%(committerdate:relative)\t%(refname:short)' refs/heads/
+	gone = !git fetch -p -q && git for-each-ref --format='%(refname:short) %(upstream:track)' refs/heads | awk '$2 == \"[gone]\" {print $1}'
+	root = rev-parse --show-toplevel
+	aliases = !git config --get-regexp '^alias\\.' | sed 's/^alias\\.//'
+
+[init]
+	defaultBranch = main
+[merge]
+	conflictstyle = diff3
+[rebase]
+	instructionFormat = (%an <%ae>) %s
+[push]
+	autoSetupRemote = true
+[fetch]
+	prune = true
+[log]
+	showSignature = false
+[commit]
+	gpgsign = false
+
+[include]
+	path = ~/.gitconfig.local

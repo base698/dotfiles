@@ -1,0 +1,6 @@
+# ~/.zshrc.local: this machine only, never committed. Loaded last.
+
+# export GOOGLE_CLOUD_PROJECT=my-project
+# export EDITOR=nvim
+# export HERDR_EDITOR=nvim          # editor for the Herdr files-find mod
+# path+=($HOME/work/tools/bin)
