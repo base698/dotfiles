@@ -1,0 +1,5 @@
+{
+  "global": {
+    "ctrl-cmd-f": "mod.open:files-find"
+  }
+}

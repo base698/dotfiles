@@ -1,0 +1,5 @@
+.DS_Store
+# Herdr App writes these into mod folders when you edit them
+gpui-kit.d.ts
+jsconfig.json
+*.error
