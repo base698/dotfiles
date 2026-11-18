@@ -3,6 +3,11 @@
 #
 #   ./install.sh                 everything below
 #   ./install.sh zsh git         just those parts (zsh, git, herdr)
+#   ./install.sh amythest [-- args]
+#                                Amythest's own Mac setup (not in the default set):
+#                                local server, amy, Herdr shortcuts, collector.
+#                                Args after -- go to its scripts/setup-mac.sh,
+#                                e.g. -- --vault ~/work-notes
 #   ./install.sh --copy herdr    copy Herdr mods instead of symlinking them
 #   ./install.sh --dry-run       show what would change
 #
@@ -11,14 +16,16 @@
 set -euo pipefail
 
 repo="$(cd "$(dirname "$0")" && pwd)"
-copy=0 dry=0 parts=()
-for arg in "$@"; do
+copy=0 dry=0 parts=() passthru=()
+while (( $# )); do
+  arg="$1"; shift
   case "$arg" in
+    --) passthru=("$@"); break ;;
     --copy) copy=1 ;;
     --dry-run|-n) dry=1 ;;
-    -h|--help) sed -n '2,11p' "$0"; exit 0 ;;
-    zsh|git|herdr) parts+=("$arg") ;;
-    *) echo "unknown part: $arg (zsh, git, herdr)" >&2; exit 2 ;;
+    -h|--help) sed -n '2,15p' "$0"; exit 0 ;;
+    zsh|git|herdr|amythest) parts+=("$arg") ;;
+    *) echo "unknown part: $arg (zsh, git, herdr, amythest)" >&2; exit 2 ;;
   esac
 done
 (( ${#parts[@]} )) || parts=(zsh git herdr)
@@ -95,6 +102,19 @@ install_herdr() {
   done
   if (( dry )); then echo "  would: merge herdr-app/keys.json into keys.json"
   else python3 "$repo/scripts/merge-keys.py" "$app/keys.json" "$repo/herdr-app/keys.json"; fi
+}
+
+install_amythest() {
+  local dir="${AMYTHEST_DIR:-$HOME/workspaces/amythest}"
+  echo "amythest (${dir/#$HOME/~})"
+  if [[ ! -x "$dir/scripts/setup-mac.sh" ]]; then
+    echo "  not found: git clone https://github.com/base698/amythest.git ${dir/#$HOME/~}"
+    echo "  (or set AMYTHEST_DIR), then re-run"
+    return
+  fi
+  local args=(${passthru[@]+"${passthru[@]}"})
+  (( dry )) && args+=(--dry-run)
+  "$dir/scripts/setup-mac.sh" ${args[@]+"${args[@]}"}
 }
 
 for part in "${parts[@]}"; do "install_$part"; done

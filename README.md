@@ -20,6 +20,12 @@ creates the per-machine files from their examples only if they don't exist.
 | `git` | `~/.gitconfig` → `git/gitconfig` | `~/.gitconfig.local`: name, email, signing key, SSH URL rewrite |
 | `herdr` | each mod in `herdr-app/mods/` → `~/.config/herdr-app/mods/` | key bindings are **merged** into Herdr's `keys.json` |
 
+`./install.sh amythest` (opt-in, not part of the default run) hands off to
+[Amythest](https://github.com/base698/amythest)'s `scripts/setup-mac.sh` from a
+clone at `~/workspaces/amythest` (or `$AMYTHEST_DIR`): local server as a launchd
+agent, `amy`, Herdr shortcuts, and the Work collector. Pass its options after
+`--`, e.g. `./install.sh amythest -- --vault ~/work-notes`.
+
 ## zsh
 
 `conf.d/` in load order: `10-path` (missing dirs dropped, no duplicates; Homebrew
