@@ -1,7 +1,9 @@
 // Records which tabs you visit, most recent first, in shared "tab.history" so other
 // mods (the ctrl-b prefix's "last tab") can go back. Herdr's own layout is rebuilt on
-// every start, so this lives in a kept 1x1 invisible window instead: Herdr reopens
+// every start, so this lives in a kept 2x2-pixel invisible window: Herdr reopens
 // kept windows on start, and a mod re-renders whenever focus changes.
+// Overlay dimensions <= 1 are window fractions, so 1 means the entire window
+// and would intercept clicks meant for tabs and terminal panes. Keep both > 1.
 // Open once with: herdr-app do mod.open --name tab-history
 import { View, div } from "gpui-kit";
 import { focused, spaces, shared, setShared, checking } from "herdr";

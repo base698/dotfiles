@@ -60,8 +60,13 @@ Based on Herdr's `tmux-prefix`, plus:
 
 `tab-history` records visited tabs (shared state `tab.history`) for `L`. Herdr
 rebuilds its own layout on every start, so instead of living in the layout it is
-a kept 1×1 invisible window, which Herdr reopens on start. `install.sh` opens it
-the first time.
+a kept 2×2-pixel invisible window, which Herdr reopens on start. `install.sh`
+opens it the first time. Overlay dimensions of `1` mean 100% of the window,
+not one pixel; using them here blocks clicks on tabs and terminals.
+
+After updating an already-running helper, run
+`herdr-app do mod.open --name tab-history` twice to close and reopen it with
+the corrected size. This leaves terminal sessions running.
 
 ## Herdr App: `files-find` (Ctrl+Cmd+F)
 
