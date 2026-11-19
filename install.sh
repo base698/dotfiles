@@ -102,6 +102,17 @@ install_herdr() {
   done
   if (( dry )); then echo "  would: merge herdr-app/keys.json into keys.json"
   else python3 "$repo/scripts/merge-keys.py" "$app/keys.json" "$repo/herdr-app/keys.json"; fi
+  # tab-history is a kept invisible window: open it once and Herdr reopens it on every start.
+  # (mod.open toggles, so only when it isn't already open.)
+  if (( ! dry )) && command -v herdr-app >/dev/null 2>&1; then
+    if herdr-app status 2>/dev/null | python3 -c 'import json,sys; sys.exit(0 if "tab-history" in json.load(sys.stdin).get("overlays", []) else 1)'; then
+      echo "  ok      tab-history running"
+    elif herdr-app do mod.open --name tab-history >/dev/null 2>&1; then
+      echo "  started tab-history"
+    else
+      echo "  start Herdr App, then re-run to start tab-history"
+    fi
+  fi
 }
 
 install_amythest() {

@@ -1,5 +1,6 @@
 {
   "global": {
-    "ctrl-cmd-f": "mod.open:files-find"
+    "ctrl-cmd-f": "mod.open:files-find",
+    "ctrl-b": "mod.open:amythest-prefix"
   }
 }

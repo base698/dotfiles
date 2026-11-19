@@ -47,6 +47,22 @@ deleted; lists only), `root`.
 
 Defaults: `init.defaultBranch=main`, `push.autoSetupRemote`, `fetch.prune`, diff3 conflicts.
 
+## Herdr App: Ctrl+B prefix (`amythest-prefix`) and `tab-history`
+
+tmux-style prefix: press Ctrl+B, then a key (wait, or press `?`, for the list).
+Based on Herdr's `tmux-prefix`, plus:
+
+| Key | Does |
+|---|---|
+| `L` | back to the last tab, in any space; press again to return (like `cd -`) |
+| `u` | the agent that most recently started needing you (blocked, or finished while you weren't looking); press again for the next one |
+| `a` `A` `f` | Amythest add / workspace / find (when Amythest is set up) |
+
+`tab-history` records visited tabs (shared state `tab.history`) for `L`. Herdr
+rebuilds its own layout on every start, so instead of living in the layout it is
+a kept 1×1 invisible window, which Herdr reopens on start. `install.sh` opens it
+the first time.
+
 ## Herdr App: `files-find` (Ctrl+Cmd+F)
 
 A keyboard file browser and finder over the focused pane's folder.

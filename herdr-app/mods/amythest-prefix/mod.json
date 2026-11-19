@@ -1,0 +1,16 @@
+{
+  "place": "none",
+  "title": "Prefix keys",
+  "overlay": {
+    "kind": "popup",
+    "at": "top",
+    "offset": 40,
+    "width": 800,
+    "height": 300,
+    "frame": "none"
+  },
+  "cloned_from": {
+    "name": "tmux-prefix",
+    "version": "0.1.16"
+  }
+}

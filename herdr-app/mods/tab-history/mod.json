@@ -1,0 +1,5 @@
+{
+  "place": "none",
+  "title": "Tab history",
+  "overlay": { "kind": "window", "key": "tab-history", "keep": true, "frame": "none", "width": 1, "height": 1, "at": { "x": 0, "y": 0 } }
+}
